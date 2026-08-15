@@ -1057,19 +1057,6 @@
                 } else if (descItem) {
                     descItem.style.display = 'none';
                 }
-
-                // Always insert shipping & returns
-                const insertShipping = () => {
-                    const el = makeAccItem('Shipping &amp; Returns', `<p>
-                        🚚 Nationwide Shipping Available<br>
-                        💳 Cash on Delivery: Karachi Only<br>
-                        💰 Advance Payment Required: Outside Karachi<br>
-                        📦 Orders are processed within 1–2 working days.
-                    </p>`);
-                    el.classList.add('pd-dynamic-section');
-                    accordion.after(el);
-                };
-                insertShipping();
             }
 
 
