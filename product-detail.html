@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Shop premium preloved and new condition shoes at Fariha's Collection. Nationwide shipping available in Pakistan.">
+    <meta property="og:title" content="Fariha's Collection - Premium Preloved Shoes">
+    <meta property="og:description" content="Shop premium preloved and new condition shoes at Fariha's Collection. Nationwide shipping available in Pakistan.">
+    <meta property="og:image" content="images/hero_closet.jpg">
+    <meta property="og:url" content="https://farihascollection.com">
+    <link rel="icon" type="image/jpeg" href="images/favicon.jpg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <title id="pageTitle">Product Details | Fariha's Collection</title>
+    <!-- Meta Pixel -->
+    <script src="pixel.js"></script>
+    <meta name="description" content="Shop quality preloved shoes at Fariha's Collection &mdash; authentic details, real photos.">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=1784216451716">
+
+    <style>
+        /* ===== PRODUCT DETAIL PAGE STYLES ===== */
+        body { font-family: 'Poppins', sans-serif; background: #fafafa; }
+
+        /* Sticky header override for this page (always visible) */
+        .pd-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 100;
+            border-bottom: 1px solid #f0f0f0;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+        }
+        .pd-header-left, .pd-header-right { display: flex; align-items: center; gap: 1rem; }
+        .pd-header-center a {
+            font-size: 1.3rem; font-weight: 800; letter-spacing: 3px;
+            text-decoration: none; color: #000;
+        }
+        .pd-icon-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #333; transition: color 0.2s; }
+        .pd-icon-btn:hover { color: #000; }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            max-width: 1200px; margin: 0 auto; padding: 1rem 2rem 0;
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.78rem; color: #aaa; font-weight: 500;
+        }
+        .breadcrumb a { color: #aaa; text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: #111; }
+        .breadcrumb span { color: #111; }
+
+        /* ===== MAIN PRODUCT LAYOUT ===== */
+        .pd-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem 4rem;
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        /* ===== IMAGE GALLERY ===== */
+        .pd-gallery { position: sticky; top: 90px; max-width: 420px; }
+
+        .pd-main-img-wrap {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f5f5f5;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            position: relative;
+        }
+        .pd-main-img-wrap img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            object-position: center 75%;
+            display: block;
+            transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+        }
+        .pd-main-img-wrap:hover img { transform: scale(1.04); }
+
+        /* NWT badge */
+        .nwt-badge {
+            position: absolute;
+            top: 16px; left: 16px;
+            background: #111; color: #fff;
+            font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 5px 12px; border-radius: 20px;
+        }
+
+        .pd-thumbs {
+            display: flex; gap: 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        .pd-thumb {
+            width: 80px; height: 80px;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s, transform 0.2s;
+            flex-shrink: 0;
+            background: #f5f5f5;
+            box-sizing: border-box;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pd-thumb.active { border-color: #111; }
+        .pd-thumb:hover { transform: scale(1.04); border-color: #999; }
+        .pd-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+        /* ===== PRODUCT INFO PANEL ===== */
+        .pd-info { padding-top: 0.5rem; }
+
+        .pd-brand-tag {
+            font-size: 0.72rem; font-weight: 800; letter-spacing: 2px;
+            text-transform: uppercase; color: #e8699a; margin-bottom: 8px;
+        }
+        .pd-title {
+            font-size: 1.75rem; font-weight: 800; color: #111;
+            line-height: 1.2; margin-bottom: 10px;
+        }
+
+        /* Star rating row */
+        .pd-rating {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 18px;
+        }
+        .pd-stars { color: #f5a623; font-size: 1rem; letter-spacing: 2px; }
+        .pd-rating-count { font-size: 0.8rem; color: #999; }
+
+        /* Price */
+        .pd-price-row {
+            display: flex; align-items: baseline; gap: 12px;
+            margin-bottom: 20px;
+        }
+        .pd-price { font-size: 1.8rem; font-weight: 800; color: #111; }
+        .pd-price-original {
+            font-size: 1.1rem; font-weight: 500; color: #bbb;
+            text-decoration: line-through;
+        }
+        .pd-price-badge {
+            background: #fde8f0; color: #c62a6d;
+            font-size: 0.72rem; font-weight: 700;
+            padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px;
+        }
+
+        /* Divider */
+        .pd-divider { border: none; border-top: 1px solid #f0f0f0; margin: 20px 0; }
+
+        /* Size selector */
+        .pd-label {
+            font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; color: #555; margin-bottom: 12px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .pd-label a { font-weight: 500; color: #e8699a; text-decoration: underline; font-size: 0.75rem; letter-spacing: 0; }
+
+        .pd-sizes {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;
+        }
+        .pd-size-btn {
+            min-width: 56px; height: 44px; padding: 0 12px;
+            border: 1.5px solid #e0e0e0; border-radius: 10px;
+            background: #fff; font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem; font-weight: 600; color: #333;
+            cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .pd-size-btn:hover { border-color: #111; color: #111; }
+        .pd-size-btn.selected {
+            border-color: #111; background: #111; color: #fff;
+        }
+        .pd-size-btn.out-of-stock {
+            color: #ccc; border-color: #eee; cursor: not-allowed;
+        }
+        .pd-size-btn.out-of-stock::after {
+            content: ''; position: absolute;
+            top: 50%; left: 50%; width: 80%; height: 1px;
+            background: #ddd;
+            transform: translate(-50%, -50%) rotate(-45deg);
+        }
+
+        /* Condition line */
+        .pd-condition {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem; font-weight: 600; color: #333;
+            margin-bottom: 16px;
+        }
+        .pd-condition strong { color: #111; font-weight: 700; }
+
+        /* Trust badges bar */
+        .pd-trustbar {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 18px;
+            padding: 18px 22px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .pd-trustbar-item {
+            display: flex; align-items: center; gap: 9px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.8rem; font-weight: 600;
+            color: #222; letter-spacing: 0.2px;
+            line-height: 1.3;
+        }
+        .pd-trustbar-icon {
+            font-size: 1.1rem; line-height: 1; flex-shrink: 0;
+        }
+        @media (max-width: 420px) {
+            .pd-trustbar {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 16px 18px;
+            }
+            .pd-trustbar-item { font-size: 0.78rem; }
+        }
+
+        /* Action buttons */
+        .pd-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+
+        .pd-btn-cart {
+            width: 100%; padding: 16px;
+            background: #111; color: #fff; border: none;
+            border-radius: 12px; font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem; font-weight: 700; letter-spacing: 0.5px;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .pd-btn-cart:hover { background: #333; transform: translateY(-1px); }
+        .pd-btn-cart:active { transform: translateY(0); }
+
+        .pd-btn-wa {
+            width: 100%; padding: 16px;
+            background: #25D366; color: #fff; border: none;
+            border-radius: 12px; font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem; font-weight: 700; letter-spacing: 0.5px;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+            transition: background 0.2s, transform 0.15s;
+            text-decoration: none;
+        }
+        .pd-btn-wa:hover { background: #1da851; transform: translateY(-1px); }
+
+        /* Trust badges */
+        .pd-trust {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 8px; margin-bottom: 24px;
+        }
+        .pd-trust-item {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; padding: 12px 8px; background: #fafafa;
+            border-radius: 10px; border: 1px solid #f0f0f0;
+            text-align: center;
+        }
+        .pd-trust-item i { font-size: 1.3rem; color: #e8699a; }
+        .pd-trust-item span { font-size: 0.68rem; color: #666; font-weight: 600; line-height: 1.3; }
+
+        /* ===== ACCORDION ===== */
+        .pd-accordion { border-top: 1px solid #f0f0f0; }
+        .pd-acc-item { border-bottom: 1px solid #f0f0f0; }
+        .pd-acc-header {
+            width: 100%; display: flex; align-items: center;
+            justify-content: space-between; padding: 16px 0;
+            background: none; border: none; cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.88rem; font-weight: 700; color: #111;
+            text-align: left; letter-spacing: 0.3px;
+        }
+        .pd-acc-icon {
+            font-size: 1.1rem; color: #aaa;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+        .pd-acc-item.open .pd-acc-icon { transform: rotate(45deg); }
+        .pd-acc-body {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.35s ease-out, padding 0.3s ease;
+        }
+        .pd-acc-item.open .pd-acc-body { max-height: 600px; }
+        .pd-acc-content {
+            padding: 0 0 18px; font-size: 0.875rem;
+            color: #555; line-height: 1.75;
+        }
+        .pd-acc-content ul {
+            list-style: none; padding: 0; margin: 0; display: flex;
+            flex-direction: column; gap: 8px;
+        }
+        .pd-acc-content ul li {
+            display: flex; align-items: flex-start; gap: 8px;
+        }
+        .pd-acc-content ul li::before {
+            content: '\2713'; color: #e8699a; font-weight: 700;
+            font-size: 0.85rem; flex-shrink: 0; margin-top: 1px;
+        }
+        .pd-detail-grid {
+            display: grid; grid-template-columns: auto 1fr; gap: 6px 16px;
+        }
+        .pd-detail-key { font-weight: 600; color: #333; font-size: 0.82rem; }
+        .pd-detail-val { color: #666; font-size: 0.82rem; }
+
+        /* ===== SUGGESTED SECTION ===== */
+        .pd-suggested {
+            max-width: 1200px; margin: 0 auto;
+            padding: 0 2rem 5rem;
+        }
+        .pd-suggested-title {
+            font-size: 1.4rem; font-weight: 800; color: #111;
+            margin-bottom: 1.5rem; position: relative;
+            padding-bottom: 12px;
+        }
+        .pd-suggested-title::after {
+            content: ''; position: absolute;
+            bottom: 0; left: 0; width: 40px; height: 3px;
+            background: #e8699a; border-radius: 2px;
+        }
+        .pd-suggested-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        /* Suggestion card */
+        .sug-card {
+            position: relative; cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s ease;
+            border-radius: 14px; overflow: hidden; background: #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .sug-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+        }
+        .sug-img-wrap {
+            width: 100%; aspect-ratio: 1 / 1;
+            overflow: hidden; background: #f5f5f5;
+            box-sizing: border-box;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sug-img-wrap img {
+            width: 100%; height: 100%;
+            object-fit: contain; display: block;
+            transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+        }
+        .sug-card:hover .sug-img-wrap img { transform: scale(1.06); }
+        .sug-info { padding: 12px 14px 14px; }
+        .sug-brand { font-size: 0.65rem; color: #bbb; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+        .sug-name { font-size: 0.88rem; font-weight: 600; color: #111; margin-bottom: 4px; line-height: 1.3; }
+        .sug-price { font-size: 0.88rem; font-weight: 700; color: #111; }
+
+        /* Notification */
+        #pd-notif {
+            position: fixed; top: 80px; right: 20px;
+            background: #111; color: #fff; padding: 14px 22px;
+            border-radius: 10px; font-size: 0.88rem; z-index: 99999;
+            opacity: 0; transform: translateY(-15px);
+            transition: all 0.3s ease; font-family: 'Poppins', sans-serif;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            pointer-events: none;
+        }
+        #pd-notif.show { opacity: 1; transform: translateY(0); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .pd-main { grid-template-columns: 1fr; gap: 2rem; }
+            .pd-gallery { position: static; }
+            .pd-suggested-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .pd-main { padding: 1rem 1rem 3rem; }
+            .pd-title { font-size: 1.4rem; }
+            .pd-price { font-size: 1.5rem; }
+            .pd-suggested { padding: 0 1rem 3rem; }
+            .pd-suggested-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .pd-header { padding: 0.8rem 1rem; }
+            .pd-gallery { max-width: 100%; }
+            .pd-thumb { width: 64px; height: 64px; }
+            .pd-trust { gap: 6px; }
+            .pd-trust-item { padding: 10px 6px; }
+        }
+        @media (max-width: 360px) {
+            .pd-suggested-grid { grid-template-columns: 1fr; }
+            .pd-header-center a { font-size: 1.05rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Marquee Banner -->
+    <div id="marqueeContainer" style="background-color:#111; color:#fff; padding:10px 0; font-size:0.85rem; position:relative; z-index:1000; letter-spacing:0.5px; font-weight:300; overflow:hidden; white-space:nowrap; display:none;">
+        <div id="marqueeInner" style="display:inline-block; animation: marquee 30s linear infinite; padding-left:100%;">
+        </div>
+    </div>
+    <style>
+        @keyframes marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+    </style>
+
+    <!-- Header -->
+    <header class="pd-header">
+        <div class="pd-header-left">
+            <button class="pd-icon-btn" id="backBtn" title="Go back"><i class="ph ph-arrow-left"></i></button>
+            <button class="pd-icon-btn" id="menuBtn" title="Menu"><i class="ph ph-list"></i></button>
+        </div>
+        <div class="pd-header-center">
+            <a href="index.html">FARIHA'S COLLECTION</a>
+        </div>
+        <div class="pd-header-right">
+            <button class="pd-icon-btn" id="cartBtn" title="Cart" style="position:relative;">
+                <i class="ph ph-shopping-bag"></i>
+                <span class="cart-badge" id="cartBadge" style="position:absolute;top:-6px;right:-8px;background:#e53935;color:#fff;font-size:0.65rem;font-weight:700;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;">0</span>
+            </button>
+            <button class="pd-icon-btn" title="Search"><i class="ph ph-magnifying-glass"></i></button>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Home</a>
+        <i class="ph ph-caret-right" style="font-size:0.7rem;"></i>
+        <a href="shop.html" id="breadcrumbCategory">Shoes</a>
+        <i class="ph ph-caret-right" style="font-size:0.7rem;"></i>
+        <span id="breadcrumbName">Loading...</span>
+    </nav>
+
+    <!-- Product Main -->
+    <main class="pd-main">
+
+        <!-- Left: Image Gallery -->
+        <div class="pd-gallery">
+            <div class="pd-main-img-wrap" id="mainImgWrap">
+                <span class="nwt-badge" style="display:none;">✦ New With Tags</span>
+                <img id="mainImg" src="" alt="Product Image">
+            </div>
+            <div class="pd-thumbs" id="thumbStrip" style="display:none;"></div>
+        </div>
+
+        <!-- Right: Product Info -->
+        <div class="pd-info">
+
+            <p class="pd-brand-tag" id="pdBrand"></p>
+            <p id="pdBrandName" style="font-family:'Poppins',sans-serif; font-weight:700; font-size:1rem; color:#111; letter-spacing:0.5px; margin:0 0 6px; display:none;"></p>
+            <h1 class="pd-title" id="pdTitleName">Loading...</h1>
+
+            <!-- Stars -->
+            <div class="pd-rating">
+                <span class="pd-stars"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></span>
+                <span class="pd-rating-count">4.9 · 128 reviews</span>
+            </div>
+
+            <!-- Price -->
+            <div class="pd-price-row">
+                <span class="pd-price" id="pdPriceVal"></span>
+                <span class="pd-price-original" id="pdPriceOriginal" style="display:none;">Rs18,000.00</span>
+                <span class="pd-price-badge" id="pdDiscountBadge" style="display:none;">25% OFF</span>
+            </div>
+
+            <hr class="pd-divider">
+
+            <!-- Size Selector -->
+            <div>
+                <p class="pd-label">
+                    Select Size (EUR)
+                    <a href="size-guide.html" id="pdSizeGuideLink" target="_blank">Size Guide</a>
+                </p>
+                <div class="pd-sizes" id="sizeSelector"></div>
+            </div>
+
+            <!-- Condition -->
+            <p class="pd-condition"><i class="ph-fill ph-check-circle" style="color: #4CAF50; vertical-align: middle; margin-right: 4px; font-size: 1.2rem;"></i> Condition: <strong id="pdConditionText">Excellent (10/10)</strong></p>
+
+            <!-- Trust Badges -->
+            <div class="pd-trustbar">
+                <div class="pd-trustbar-item"><span class="pd-trustbar-icon"><i class="ph ph-shield-check"></i></span> Original Pre-Loved</div>
+                <div class="pd-trustbar-item"><span class="pd-trustbar-icon"><i class="ph ph-truck"></i></span> Fast Ship</div>
+                <div class="pd-trustbar-item"><span class="pd-trustbar-icon"><i class="ph ph-whatsapp-logo"></i></span> WhatsApp Support</div>
+                <div class="pd-trustbar-item"><span class="pd-trustbar-icon"><i class="ph ph-arrows-counter-clockwise"></i></span> Easy Exchange</div>
+            </div>
+
+            <!-- Rare Pick Banner -->
+            <div id="rarePickBanner" style="display:none; margin-bottom:1rem; background:linear-gradient(135deg,#fff8f0 0%,#fff3e6 100%); border:2px solid #ff6b00; border-radius:10px; padding:12px 16px; display:none; align-items:center; gap:10px;">
+                <span style="font-size:1.4rem;">🔥</span>
+                <div>
+                    <div style="font-family:'Poppins',sans-serif; font-weight:700; font-size:0.88rem; color:#c94400; letter-spacing:0.2px;">Only 1 Pair Available – Grab it before it's gone.</div>
+                    <div style="font-family:'Poppins',sans-serif; font-size:0.75rem; color:#e07000; font-weight:500; margin-top:2px;">✨ One-of-a-Kind Find</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pd-actions">
+                <button class="pd-btn-cart" id="pdAddToCart" disabled>
+                    <i class="ph ph-shopping-bag"></i> Loading...
+                </button>
+                <a href="#" target="_blank" class="pd-btn-wa" id="pdWhatsappLink">
+                    <i class="ph-fill ph-whatsapp-logo"></i> Order via WhatsApp
+                </a>
+            </div>
+            <p style="font-family: 'Poppins', sans-serif; font-size: 0.75rem; color: #666; margin-top: 12px; margin-bottom: 25px; text-align: center; font-style: italic;">
+                <span style="color: #ff4d4d; font-weight: bold; font-size: 0.9rem; line-height: 0;">*</span> Every pair is unique. Once sold, it may not be available again.
+            </p>
+
+            <!-- Accordion Sections -->
+            <div class="pd-accordion">
+
+                <!-- Description -->
+                <div class="pd-acc-item open" id="pdDescriptionItem">
+                    <button class="pd-acc-header">
+                        <span>Product Description</span>
+                        <i class="ph ph-plus pd-acc-icon"></i>
+                    </button>
+                    <div class="pd-acc-body">
+                        <div class="pd-acc-content" id="pdDescriptionContent">
+                            <p>Loading description...</p>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- Shipping -->
+                <div class="pd-acc-item">
+                    <button class="pd-acc-header">
+                        <span>Shipping & Returns</span>
+                        <i class="ph ph-plus pd-acc-icon"></i>
+                    </button>
+                    <div class="pd-acc-body">
+                        <div class="pd-acc-content">
+                            <ul>
+                                <li>We ship orders across Pakistan</li>
+                                <li>Orders are processed within 1&ndash;2 business days after confirmation</li>
+                                <li>Delivery usually takes 2&ndash;5 business days, depending on your location</li>
+                                <li><strong>Karachi:</strong> Cash on Delivery (COD) available</li>
+                                <li><strong>Outside Karachi:</strong> Full advance payment required before dispatch</li>
+                                <li>Tracking details are shared via WhatsApp or SMS once dispatched</li>
+                                <li><strong>Please record a continuous unboxing video</strong> before opening your parcel &mdash; claims for damaged, missing, incorrect items, or exchanges are only considered with a clear unboxing video</li>
+                                <li>Contact us via WhatsApp for fastest support</li>
+                            </ul>
+                            <p style="margin-top:10px;font-size:0.82rem;">
+                                <a href="shipping-policy.html" style="color:#111;text-decoration:underline;font-weight:600;">Read our full Shipping Policy &rarr;</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- end accordion -->
+
+        </div>
+    </main>
+
+    <!-- Suggested Shoes -->
+    <section class="pd-suggested">
+        <h2 class="pd-suggested-title">You May Also Like</h2>
+        <div class="pd-suggested-grid" id="suggestedGrid">
+            <!-- Populated dynamically from Sanity (see script below) -->
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section style="max-width: 800px; margin: 60px auto 40px; padding: 0 20px; text-align: center; border-top: 1px solid #eee; padding-top: 50px;">
+
+        <p style="font-size: 1.2rem; font-weight: 700; color: #111; margin-bottom: 25px;">Join thousands of happy customers.</p>
+        
+        <div style="display: flex; justify-content: center; gap: 25px; margin-top: 30px;">
+            <a href="https://www.facebook.com/share/1GMaKgnphh/?mibextid=wwXIfr" target="_blank" rel="noopener" style="color: #333; font-size: 2.2rem; transition: color 0.3s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#333'"><i class="ph-fill ph-facebook-logo"></i></a>
+            <a href="https://www.instagram.com/farihapreloved_?igsh=MW1vMnp5em1qNTduag%3D%3D&utm_source=qr" target="_blank" rel="noopener" style="color: #333; font-size: 2.2rem; transition: color 0.3s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#333'"><i class="ph-fill ph-instagram-logo"></i></a>
+            <a href="https://vt.tiktok.com/ZSCbGXCc5/" target="_blank" rel="noopener" style="color: #333; font-size: 2.2rem; transition: color 0.3s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#333'"><i class="ph-fill ph-tiktok-logo"></i></a>
+            <a href="mailto:fariha6484preloved@gmail.com" style="color: #333; font-size: 2.2rem; transition: color 0.3s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#333'"><i class="ph-fill ph-envelope-simple"></i></a>
+            <a href="https://wa.me/923090625199" target="_blank" rel="noopener" style="color: #333; font-size: 2.2rem; transition: color 0.3s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='#333'"><i class="ph-fill ph-whatsapp-logo"></i></a>
+        </div>
+    </section>
+
+    <!-- Notification -->
+    <div id="pd-notif"></div>
+
+    <!-- WhatsApp Float -->
+    <a href="https://wa.me/923090625199?text=Hi! I'm interested in your shoes collection." target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+        <i class="ph-fill ph-whatsapp-logo" style="font-size:1.4rem;"></i>
+        <span style="font-family:'Poppins',sans-serif;font-size:0.85rem;font-weight:600;">Need Help?</span>
+    </a>
+
+    <script>
+        // ===== SANITY CONFIG =====
+        // ===== SANITY IMAGE OPTIMISATION HELPER =====
+    function sanityImg(url, options = {}) {
+        if (!url || url.includes('cdn.sanity.io')) return 'images/placeholder.jpg';
+        return url;
+    }
+    // ============================================
+
+    const SANITY_PROJECT_ID = 'kxnjofhp';
+        const SANITY_DATASET = 'production';
+        const SANITY_API_VERSION = '2024-01-01';
+
+        function sanityQueryUrl(query, params) {
+            const base = `https://${SANITY_PROJECT_ID}.api.sanity.io/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}`;
+            const qs = new URLSearchParams({ query });
+            for (const [k, v] of Object.entries(params || {})) qs.set(`$${k}`, JSON.stringify(v));
+            return `${base}?${qs.toString()}`;
+        }
+
+        // ===== CART =====
+        // Populated with URL fallback values immediately (so the page isn't blank
+        // while Sanity loads), then overwritten once the full product arrives.
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        const PRODUCT = {
+            _id: productId || '',            // Sanity document _id == Catalog content_id — needed so Pixel content_ids match the Catalog feed
+            name: urlParams.get('name') || 'Loading...',
+            price: parseInt(urlParams.get('price')) || 0,
+            image: urlParams.get('image') || '',
+            category: 'women'
+        };
+        let selectedSize = null;
+
+        // ===== INITIAL (FALLBACK) POPULATION FROM URL PARAMS =====
+        const pdName = urlParams.get('name');
+        const pdPrice = urlParams.get('price');
+        const pdImage = urlParams.get('image');
+        const pdTag = urlParams.get('tag');
+
+        if (pdName) {
+            document.getElementById('pageTitle').textContent = pdName + " | Fariha's Collection";
+            document.getElementById('breadcrumbName').textContent = pdName;
+            document.getElementById('pdTitleName').textContent = pdName;
+            
+            // Smart WhatsApp Pre-fill
+            const waFloat = document.querySelector('.whatsapp-float');
+            if (waFloat) {
+                waFloat.href = `https://wa.me/923090625199?text=Hi! I'm interested in the ${encodeURIComponent(pdName)}.`;
+            }
+        }
+        if (pdPrice) {
+            document.getElementById('pdPriceVal').textContent = "Rs" + parseInt(pdPrice).toLocaleString();
+            document.getElementById('pdPriceOriginal').style.display = 'none';
+            document.getElementById('pdDiscountBadge').style.display = 'none';
+        }
+        if (pdImage) {
+            document.getElementById('mainImg').src = pdImage;
+            const badge = document.querySelector('.nwt-badge');
+            if (badge) badge.style.display = 'none';
+        }
+        if (pdTag) {
+            document.getElementById('pdBrand').textContent = pdTag;
+        }
+        if (pdName) {
+            const waLink = document.getElementById('pdWhatsappLink');
+            if (waLink) {
+                const msg = encodeURIComponent(`Hi! I'm interested in the ${pdName}. Is it available?`);
+                waLink.href = `https://wa.me/923090625199?text=${msg}`;
+            }
+        }
+
+        // ===== FETCH FULL PRODUCT FROM WORKER =====
+        async function loadProductFromSanity() {
+            if (!productId) {
+                // no id passed, fallback data above is all we have —
+                // still need to take the button out of its initial "Loading..." state
+                updateStockDisplay(0, false, false);
+                return;
+            }
+
+            try {
+                const WORKER_URL = 'https://fc-cms.faisalshayan444.workers.dev';
+                const [productRes, settingsRes] = await Promise.all([
+                    fetch(`${WORKER_URL}/api/products/${productId}`),
+                    fetch(`${WORKER_URL}/api/settings`)
+                ]);
+                
+                if (!productRes.ok) throw new Error(`Worker request failed: ${productRes.status}`);
+                const productRaw = await productRes.json();
+                const settings = await settingsRes.json();
+                
+                // Normalise to what the page expects
+                const product = {
+                    _id: productRaw.id,
+                    name: productRaw.name,
+                    price: productRaw.price,
+                    brand: productRaw.brand,
+                    description: productRaw.description,
+                    category: productRaw.category,
+                    subCategory: productRaw.subCategory,
+                    soldOut: productRaw.soldOut,
+                    sizes: productRaw.size ? [{size: productRaw.size, stock: 1}] : [],
+                    image: productRaw.images && productRaw.images.length ? productRaw.images[0] : 'images/placeholder.jpg',
+                    images: productRaw.images || [],
+                    isSale: (productRaw.salePercent > 0),
+                    salePercentage: productRaw.salePercent || 0,
+                    isRarePick: false,
+                    isTagged: productRaw.subCategory === 'tagged',
+                    conditionText: productRaw.condition || 'Excellent (10/10)',
+                    settings: settings
+                };
+
+                if (!productRaw.id) {
+                    updateStockDisplay(0, false, false);
+                    return;
+                }
+                
+                // Render Marquee Banner
+                if (settings.marqueeActive !== false) {
+                    const marqueeMsgs = settings.marqueeMessages && settings.marqueeMessages.length > 0 
+                        ? settings.marqueeMessages 
+                        : [
+                            "📹 <strong>Notice:</strong> Please record a complete unboxing video before opening your parcel.",
+                            "🏷️ Premium <strong>Preloved Condition</strong> Shoes — Shipped Across Pakistan"
+                        ];
+                    const mc = document.getElementById('marqueeContainer');
+                    const mi = document.getElementById('marqueeInner');
+                    if (mc && mi) {
+                        const spanHtml = marqueeMsgs.map(msg => {
+                            let parsedMsg = msg.replace(/\[(.*?)\]/g, '<strong style="background:#fff;color:#111;padding:2px 8px;border-radius:4px;letter-spacing:1px;">$1</strong>');
+                            return `<span style="margin-right: 60px;">${parsedMsg}</span>`;
+                        }).join('');
+                        mi.innerHTML = spanHtml;
+                        mc.style.display = 'block';
+                    }
+                }
+
+                // applyProduct() renders the page (title, price, gallery, description...).
+                // It's wrapped separately so that if it throws on any unusual product data,
+                // that failure can NEVER silently take the ViewContent pixel down with it.
+                try {
+                    applyProduct(product);
+                } catch (renderErr) {
+                    console.error('Failed to render product details:', renderErr);
+                }
+
+                // Fires unconditionally (own try/catch) so a UI rendering bug never blocks
+                // tracking. PRODUCT._id is set from productId at declaration time, so it's
+                // always correct here regardless of whether applyProduct() succeeded.
+                try {
+                    if (window.fcPixelViewContent) {
+                        window.fcPixelViewContent(PRODUCT.name, PRODUCT.price, PRODUCT._id);
+                    }
+                } catch (pixelErr) {
+                    console.error('Failed to fire ViewContent pixel:', pixelErr);
+                }
+            } catch (err) {
+                console.error('Failed to load product from Sanity:', err);
+                // Fallback URL-param data stays on screen; page remains usable.
+                // Without this, the button is stuck on its initial "Loading..." state forever.
+                updateStockDisplay(0, false, false);
+            }
+        }
+
+        function applyProduct(p) {
+            const name = p.name || PRODUCT.name;
+            const salePrice = Number(p.price) || PRODUCT.price;
+            
+            let finalPrice = salePrice;
+            let origPrice = null;
+            let discountPercent = 0;
+            const settings = p.settings || {};
+
+            // Check product-level sale first, then global sale
+            if (p.isSale && p.salePercentage > 0) {
+                discountPercent = p.salePercentage;
+            } else if (settings.globalSaleActive && settings.globalSalePercentage > 0) {
+                discountPercent = settings.globalSalePercentage;
+            }
+
+            if (discountPercent > 0) {
+                origPrice = Math.ceil(salePrice / (1 - discountPercent / 100) / 100) * 100;
+            }
+
+            // Use images array from worker for gallery
+            const allImages = (p.images && p.images.length > 0) ? p.images : (p.image ? [p.image] : ['images/placeholder.jpg']);
+            const category = (p.category || 'women').toLowerCase();
+
+            PRODUCT.name = name;
+            PRODUCT.price = finalPrice;
+            PRODUCT.image = allImages[0] || 'images/placeholder.jpg';
+            PRODUCT.category = category;
+
+            document.getElementById('pageTitle').textContent = name + " | Fariha's Collection";
+            document.getElementById('breadcrumbName').textContent = name;
+            document.getElementById('pdTitleName').textContent = name;
+            document.getElementById('pdPriceVal').textContent = "Rs" + finalPrice.toLocaleString();
+            
+            const origPriceEl = document.getElementById('pdPriceOriginal');
+            const badgeEl = document.getElementById('pdDiscountBadge');
+            
+            if (origPrice) {
+                origPriceEl.textContent = "Rs" + origPrice.toLocaleString();
+                origPriceEl.style.display = 'inline-block';
+                badgeEl.textContent = `Save ${discountPercent}%`;
+                badgeEl.style.display = 'inline-block';
+            } else {
+                origPriceEl.style.display = 'none';
+                badgeEl.style.display = 'none';
+            }
+
+            if (p.tag) document.getElementById('pdBrand').textContent = p.tag;
+
+            // ----- Brand Name -----
+            const brandEl = document.getElementById('pdBrandName');
+            if (brandEl) {
+                if (p.brand) {
+                    brandEl.textContent = p.brand;
+                    brandEl.style.display = 'block';
+                } else {
+                    brandEl.style.display = 'none';
+                }
+            }
+
+            // ----- Breadcrumb: category-aware -----
+            const crumb = document.getElementById('breadcrumbCategory');
+            if (crumb) {
+                if (category === 'men') {
+                    crumb.textContent = "Men's Shoes";
+                    crumb.href = 'shop.html?filter=men';
+                } else if (category === 'unisex') {
+                    crumb.textContent = 'Unisex Shoes';
+                    crumb.href = 'shop.html?filter=unisex';
+                } else {
+                    crumb.textContent = "Women's Shoes";
+                    crumb.href = 'shop.html?filter=women';
+                }
+            }
+
+            // NWT / Tagged badge fallback removal (done dynamically now if needed)
+            const badge = document.querySelector('.nwt-badge');
+            if (badge) badge.style.display = 'none';
+
+            // ----- Tagged Shoe Banner (New Badge) -----
+            const taggedBadge = document.getElementById('taggedBadge');
+            if (taggedBadge) {
+                if (p.isTagged === true) {
+                    taggedBadge.style.display = 'flex';
+                } else {
+                    taggedBadge.style.display = 'none';
+                }
+            }
+
+            // ----- Condition Text -----
+            const conditionEl = document.getElementById('pdConditionText');
+            if (conditionEl && p.conditionText) {
+                conditionEl.textContent = p.conditionText;
+            }
+
+            // ----- Size Guide link: pre-filter to this product's category -----
+            const sizeGuideLink = document.getElementById('pdSizeGuideLink');
+            if (sizeGuideLink) sizeGuideLink.href = `size-guide.html?category=${category}`;
+
+            // ----- WhatsApp order link -----
+            const waLink = document.getElementById('pdWhatsappLink');
+            if (waLink) {
+                const msg = encodeURIComponent(`Hi! I'm interested in the ${name}. Is it available?`);
+                waLink.href = `https://wa.me/923090625199?text=${msg}`;
+            }
+
+            // ----- Gallery: main image + thumbnails -----
+            const mainImg = document.getElementById('mainImg');
+            mainImg.onerror = function() { this.onerror=null; this.src='images/placeholder.jpg'; };
+            mainImg.src = sanityImg(allImages[0] || '', { w: 1200, q: 85 });
+            mainImg.alt = name;
+
+            const thumbStrip = document.getElementById('thumbStrip');
+            if (allImages.length > 1) {
+                thumbStrip.innerHTML = allImages.map((url, i) => `
+                    <div class="pd-thumb${i === 0 ? ' active' : ''}" data-img="${sanityImg(url, { w: 1200, q: 85 })}" data-alt="${name} view ${i + 1}">
+                        <img src="${sanityImg(url, { w: 200 })}" alt="${name} view ${i + 1}" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg'">
+                    </div>
+                `).join('');
+                thumbStrip.style.display = 'flex';
+                wireGalleryThumbs();
+            } else {
+                thumbStrip.style.display = 'none';
+            }
+
+            // ----- Description (structured sections as separate accordions) -----
+            const descItem = document.getElementById('pdDescriptionItem');
+            const descContent = document.getElementById('pdDescriptionContent');
+            const accordion = document.querySelector('.pd-accordion');
+
+            // Helper: build an accordion item element
+            function makeAccItem(title, contentHtml, id) {
+                const item = document.createElement('div');
+                item.className = 'pd-acc-item';
+                if (id) item.id = id;
+                item.innerHTML = `
+                    <button class="pd-acc-header">
+                        <span>${title}</span>
+                        <i class="ph ph-plus pd-acc-icon"></i>
+                    </button>
+                    <div class="pd-acc-body">
+                        <div class="pd-acc-content" style="font-size:0.83rem;color:#444;line-height:1.7;">
+                            ${contentHtml}
+                        </div>
+                    </div>`;
+                // Wire the toggle
+                item.querySelector('.pd-acc-header').addEventListener('click', function() {
+                    item.classList.toggle('open');
+                    const icon = item.querySelector('.pd-acc-icon');
+                    if (icon) icon.className = item.classList.contains('open')
+                        ? 'ph ph-minus pd-acc-icon'
+                        : 'ph ph-plus pd-acc-icon';
+                });
+                return item;
+            }
+
+            // Helper: render rich text blocks or standard strings to HTML
+            function renderDesc(field) {
+                if (!field) return '';
+                if (typeof field === 'string') return `<p>${field.replace(/\n/g,'<br>')}</p>`;
+                if (Array.isArray(field)) {
+                    let html = '';
+                    field.forEach(block => {
+                        if (block._type === 'block' && block.children) {
+                            let pHtml = '';
+                            block.children.forEach(child => {
+                                let text = child.text || '';
+                                if (child.marks && child.marks.includes('strong')) text = `<strong>${text}</strong>`;
+                                if (child.marks && child.marks.includes('em')) text = `<em>${text}</em>`;
+                                pHtml += text;
+                            });
+                            html += `<p style="margin-bottom:0.8rem;">${pHtml}</p>`;
+                        }
+                    });
+                    return html;
+                }
+                return '';
+            }
+
+            // Remove any previously injected dynamic section accordions
+            document.querySelectorAll('.pd-dynamic-section').forEach(el => el.remove());
+
+            const finalIntro = p.descIntroRich || p.descIntro;
+            const finalCondition = p.descConditionRich || p.descCondition;
+            const finalFit = p.descFitComfortRich || p.descFitComfort;
+            const finalPerfectFor = p.descPerfectForRich || p.descPerfectFor;
+            const finalExchange = p.descExchangePolicyRich || p.descExchangePolicy;
+
+            const hasStructured = finalIntro || p.descProductDetails || finalCondition || finalFit || finalPerfectFor;
+
+            if (hasStructured) {
+                // 1. Intro goes into Product Description accordion (only the intro text)
+                if (finalIntro) {
+                    descContent.innerHTML = `<div style="line-height:1.7;">${renderDesc(finalIntro)}</div>`;
+                    if (descItem) descItem.style.display = '';
+                } else {
+                    if (descItem) descItem.style.display = 'none';
+                }
+
+                const insertAfter = accordion; // inject after accordion
+
+                // 2. Product Details section
+                const d = p.descProductDetails || {};
+                const detailRows = [
+                    ['Brand', d.brandDetail],
+                    ['Category', d.categoryDetail],
+                    ['Material', d.material],
+                    ['Color', d.color],
+                    ['Closure Type', d.closureType],
+                    ['Heel Height', d.heelHeight],
+                    ['Toe Shape', d.toeShape],
+                    ['Sole Material', d.soleMaterial],
+                ].filter(([, v]) => v);
+
+                if (detailRows.length > 0) {
+                    const tableHtml = `<table style="width:100%;border-collapse:collapse;">
+                        ${detailRows.map(([k, v]) => `<tr>
+                            <td style="padding:4px 12px 4px 0;color:#666;white-space:nowrap;font-weight:600;font-size:0.82rem;">${k}</td>
+                            <td style="padding:4px 0;color:#333;font-size:0.82rem;">${v}</td>
+                        </tr>`).join('')}
+                    </table>`;
+                    const el = makeAccItem('Product Details', tableHtml);
+                    el.classList.add('pd-dynamic-section');
+                    insertAfter.after(el);
+                    // subsequent ones after this
+                    insertAfter._lastInserted = el;
+                }
+
+                // helper to insert in order
+                function insertSection(title, html) {
+                    const el = makeAccItem(title, html);
+                    el.classList.add('pd-dynamic-section');
+                    const lastInserted = accordion._lastInserted;
+                    if (lastInserted) {
+                        lastInserted.after(el);
+                    } else {
+                        accordion.after(el);
+                    }
+                    accordion._lastInserted = el;
+                }
+
+                // reset tracker
+                if (!accordion._lastInserted && detailRows.length === 0) {
+                    accordion._lastInserted = null;
+                }
+
+                // 3. Condition
+                if (finalCondition) {
+                    insertSection('Condition', renderDesc(finalCondition));
+                }
+
+                // 4. Fit & Comfort
+                if (finalFit) {
+                    insertSection('Fit &amp; Comfort', renderDesc(finalFit));
+                }
+
+                // 5. Perfect For
+                if (finalPerfectFor) {
+                    insertSection('Perfect For', renderDesc(finalPerfectFor));
+                }
+
+                // 6. Shipping & Payment (always shown)
+                insertSection('Shipping &amp; Payment', `<p>
+                    🚚 Nationwide Shipping Available<br>
+                    💳 Cash on Delivery: Karachi Only<br>
+                    💰 Advance Payment Required: Outside Karachi<br>
+                    📦 Orders are processed within 1–2 working days.
+                </p>`);
+
+                // 7. Exchange Policy
+                if (finalExchange) {
+                    insertSection('Exchange Policy', renderDesc(finalExchange));
+                }
+
+                // 8. Need Help (always shown)
+                insertSection('Need Help?', `<p>If you have any questions about sizing, condition, or the product, feel free to contact us on WhatsApp. We're always happy to help.</p>`);
+
+                // cleanup tracker
+                delete accordion._lastInserted;
+
+            } else {
+                // Simple description from Worker (no structured Sanity fields)
+                const targetDesc = p.richDescription || p.description;
+                if (targetDesc) {
+                    descContent.innerHTML = `<p style="line-height:1.7;color:#444;">${String(targetDesc).replace(/\n/g,'<br>')}</p>`;
+                    if (descItem) { descItem.style.display = ''; descItem.classList.add('open'); }
+                } else if (descItem) {
+                    descItem.style.display = 'none';
+                }
+
+                // Always insert shipping & returns
+                const insertShipping = () => {
+                    const el = makeAccItem('Shipping &amp; Returns', `<p>
+                        🚚 Nationwide Shipping Available<br>
+                        💳 Cash on Delivery: Karachi Only<br>
+                        💰 Advance Payment Required: Outside Karachi<br>
+                        📦 Orders are processed within 1–2 working days.
+                    </p>`);
+                    el.classList.add('pd-dynamic-section');
+                    accordion.after(el);
+                };
+                insertShipping();
+            }
+
+
+
+            const isSoldOut = p.soldOut === true;
+
+            // ----- Sizes + Stock -----
+            const sizeSelector = document.getElementById('sizeSelector');
+            let totalStock = 0;
+            if (Array.isArray(p.sizes) && p.sizes.length > 0) {
+                totalStock = p.sizes.reduce((sum, s) => sum + (Number(s.stock) || 0), 0);
+                sizeSelector.innerHTML = p.sizes.map((s, i) => {
+                    const outOfStock = isSoldOut || !s.stock || s.stock <= 0;
+                    const isFirstAvailable = !outOfStock && !sizeSelector.dataset.firstSet;
+                    if (isFirstAvailable) sizeSelector.dataset.firstSet = 'true';
+                    return `<button class="pd-size-btn${outOfStock ? ' out-of-stock' : ''}${isFirstAvailable ? ' selected' : ''}"
+                                data-size="${s.size}" ${outOfStock ? 'disabled' : ''}>${s.size}</button>`;
+                }).join('');
+                delete sizeSelector.dataset.firstSet;
+                const firstSelected = sizeSelector.querySelector('.selected');
+                selectedSize = firstSelected ? firstSelected.dataset.size : null;
+                wireSizeButtons();
+            } else {
+                // No sizes configured for this product — hide the selector entirely
+                const sizeBlock = sizeSelector.closest('div');
+                if (sizeBlock) sizeBlock.style.display = 'none';
+                selectedSize = null;
+            }
+
+            // ----- Rare Pick Banner -----
+            const rarePickBanner = document.getElementById('rarePickBanner');
+            if (rarePickBanner) {
+                if (p.isRarePick === true) {
+                    rarePickBanner.style.display = 'flex';
+                } else {
+                    rarePickBanner.style.display = 'none';
+                }
+            }
+
+            updateStockDisplay(totalStock, Array.isArray(p.sizes) && p.sizes.length > 0, isSoldOut);
+        }
+
+        // Keeps Add to Cart disabled when a product is genuinely out of stock —
+        // no visible stock-count text is shown, this only guards the button.
+        // `soldOut` is a manual override in Sanity that beats everything else,
+        // for quick one-click sales or products with no size variants at all.
+        function updateStockDisplay(totalStock, hasSizes, soldOut) {
+            const atcBtn = document.getElementById('pdAddToCart');
+            if (!atcBtn) return;
+
+            const isAvailable = !soldOut && (!hasSizes || totalStock > 0);
+
+            if (isAvailable) {
+                atcBtn.disabled = false;
+                atcBtn.innerHTML = '<i class="ph ph-shopping-bag"></i> Add to Cart';
+                atcBtn.style.background = '';
+                atcBtn.style.cursor = '';
+                atcBtn.style.color = '';
+            } else {
+                atcBtn.disabled = true;
+                atcBtn.innerHTML = '<i class="ph ph-x-circle"></i> Out of Stock';
+                atcBtn.style.background = '#ccc';
+                atcBtn.style.cursor = 'not-allowed';
+                atcBtn.style.color = '#666';
+            }
+        }
+
+        function getCart() { return JSON.parse(localStorage.getItem('fc_cart') || '[]'); }
+        function saveCart(c) { localStorage.setItem('fc_cart', JSON.stringify(c)); updateBadge(); }
+
+        function updateBadge() {
+            const count = getCart().reduce((s, i) => s + i.qty, 0);
+            const badge = document.getElementById('cartBadge');
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+
+        function addToCart() {
+            const cart = getCart();
+            const key = PRODUCT.name + (selectedSize ? ' · ' + selectedSize : '');
+            const id = PRODUCT._id;
+            const ex = cart.find(i => i.id === id || (i.name === key && !i.id));
+            if (ex) {
+                ex.qty++;
+                if (!ex.id) ex.id = id;
+            } else {
+                cart.push({ id, name: key, price: PRODUCT.price, image: PRODUCT.image, qty: 1 });
+            }
+            saveCart(cart);
+            showNotif('✓ Added to cart' + (selectedSize ? ' — ' + selectedSize : ''));
+            try {
+                if (window.fcPixelAddToCart) window.fcPixelAddToCart(PRODUCT.name, PRODUCT.price, PRODUCT._id, 1);
+            } catch (pixelErr) {
+                console.error('Failed to fire AddToCart pixel:', pixelErr);
+            }
+        }
+
+        function showNotif(msg) {
+            const n = document.getElementById('pd-notif');
+            n.textContent = msg;
+            n.classList.add('show');
+            clearTimeout(n._t);
+            n._t = setTimeout(() => n.classList.remove('show'), 2800);
+        }
+
+        // Size buttons (re-bindable since sizes render dynamically)
+        function wireSizeButtons() {
+            document.querySelectorAll('.pd-size-btn:not(.out-of-stock)').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.pd-size-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedSize = btn.dataset.size;
+                });
+            });
+        }
+
+        // Add to cart
+        document.getElementById('pdAddToCart').addEventListener('click', addToCart);
+
+        // Cart icon -> checkout
+        document.getElementById('cartBtn').addEventListener('click', () => window.location.href = 'checkout.html');
+
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            if (document.referrer && document.referrer.includes('shop.html')) {
+                window.history.back();
+            } else {
+                window.location.href = 'shop.html';
+            }
+        });
+
+        // ===== IMAGE GALLERY ===== (re-bindable since thumbs render dynamically)
+        function wireGalleryThumbs() {
+            const thumbs = Array.from(document.querySelectorAll('.pd-thumb'));
+            thumbs.forEach((thumb, index) => {
+                thumb.addEventListener('click', () => {
+                    document.querySelectorAll('.pd-thumb').forEach(t => t.classList.remove('active'));
+                    thumb.classList.add('active');
+                    const mainImg = document.getElementById('mainImg');
+                    mainImg.style.opacity = '0';
+                    mainImg.style.transform = 'scale(0.97)';
+                    setTimeout(() => {
+                        mainImg.src = thumb.dataset.img;
+                        mainImg.alt = thumb.dataset.alt;
+                        mainImg.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        mainImg.style.opacity = '1';
+                        mainImg.style.transform = 'scale(1)';
+                    }, 150);
+                });
+            });
+
+            // Swipe logic for mobile
+            const mainImgWrap = document.getElementById('mainImgWrap');
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            mainImgWrap.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, {passive: true});
+
+            mainImgWrap.addEventListener('touchend', (e) => {
+                const touchEndX = e.changedTouches[0].screenX;
+                const touchEndY = e.changedTouches[0].screenY;
+                
+                const diffX = touchEndX - touchStartX;
+                const diffY = touchEndY - touchStartY;
+
+                // Detect horizontal swipe (must be mostly horizontal and > 40px)
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+                    const thumbsList = Array.from(document.querySelectorAll('.pd-thumb'));
+                    if (thumbsList.length <= 1) return;
+                    
+                    const activeIndex = thumbsList.findIndex(t => t.classList.contains('active'));
+                    let nextIndex = activeIndex;
+
+                    if (diffX < 0) {
+                        // Swiped left (next image)
+                        nextIndex = (activeIndex + 1) % thumbsList.length;
+                    } else {
+                        // Swiped right (previous image)
+                        nextIndex = (activeIndex - 1 + thumbsList.length) % thumbsList.length;
+                    }
+
+                    if (nextIndex !== activeIndex) {
+                        thumbsList[nextIndex].click();
+                    }
+                }
+            }, {passive: true});
+        }
+
+        // ===== ACCORDION =====
+        document.querySelectorAll('.pd-acc-header').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.parentElement;
+                const isOpen = item.classList.contains('open');
+                document.querySelectorAll('.pd-acc-item').forEach(i => i.classList.remove('open'));
+                if (!isOpen) item.classList.add('open');
+            });
+        });
+
+        // ===== SUGGESTED PRODUCTS ("You May Also Like") =====
+        async function loadSuggestedProducts() {
+            const grid = document.getElementById('suggestedGrid');
+            if (!grid) return;
+
+            const cat = PRODUCT.category || 'women';
+            try {
+                const WORKER_URL = 'https://fc-cms.faisalshayan444.workers.dev';
+                const res = await fetch(`${WORKER_URL}/api/products`);
+                if (!res.ok) throw new Error(`Worker request failed: ${res.status}`);
+                const json = await res.json();
+                let products = json.products || [];
+
+                if (cat) {
+                    products = products.filter(p => p.category === cat || p.subCategory === cat);
+                }
+                products = products.filter(p => p.id !== productId);
+
+                if (products.length === 0) {
+                    grid.closest('.pd-suggested').style.display = 'none';
+                    return;
+                }
+
+                // Shuffle then take 4
+                products = products.sort(() => Math.random() - 0.5).slice(0, 4);
+
+                grid.innerHTML = products.map(p => {
+                    const name = p.name || 'Untitled Product';
+                    const price = Number(p.price) || 0;
+                    const image = p.images && p.images[0] ? p.images[0] : 'images/placeholder.jpg';
+                    const params = new URLSearchParams({ id: p.id, name, price, image });
+                    return `
+                    <div class="sug-card" onclick="window.location='product-detail.html?${params.toString()}'">
+                            <div class="sug-img-wrap"><img src="${sanityImg(image)}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg'"></div>
+                            <div class="sug-info">
+                                <p class="sug-brand">Fariha's Collection</p>
+                                <h3 class="sug-name">${name}</h3>
+                                <p class="sug-price">Rs${price.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Failed to load suggested products from Sanity:', err);
+                grid.closest('.pd-suggested').style.display = 'none';
+            }
+        }
+
+        updateBadge();
+        loadProductFromSanity().finally(loadSuggestedProducts);
+    </script>
+
+    <script src="main.js?v=1784216451716"></script>
+    <script>
+    // ===== NAV SHOP DROPDOWN =====
+    document.querySelectorAll('.nav-shop-dropdown').forEach(function (dd) {
+        var toggle = dd.querySelector('.nav-shop-toggle');
+        if (!toggle) return;
+        toggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            var isOpen = dd.classList.contains('open');
+            document.querySelectorAll('.nav-shop-dropdown.open').forEach(function (o) {
+                if (o !== dd) o.classList.remove('open');
+            });
+            dd.classList.toggle('open', !isOpen);
+        });
+    });
+    document.addEventListener('click', function (e) {
+        document.querySelectorAll('.nav-shop-dropdown.open').forEach(function (dd) {
+            if (!dd.contains(e.target)) dd.classList.remove('open');
+        });
+    });
+    </script>
+</body>
+</html>
+
+
