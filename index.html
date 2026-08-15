@@ -518,7 +518,13 @@ async function loadProducts(){
   }
   try{
     const data=await api('GET','/api/products');
-    allProducts=data.products||[];
+    let arr=data.products||[];
+    arr.sort((a,b)=>{
+      const aImg=(a.images&&a.images[0])?1:0;
+      const bImg=(b.images&&b.images[0])?1:0;
+      return bImg-aImg;
+    });
+    allProducts=arr;
     updateStats();applyFilters();
   }catch(e){
     tbody.innerHTML='<tr><td colspan="6"><div class="state-box"><div class="icon">&#10060;</div><p>'+escHtml(e.message)+'</p></div></td></tr>';
