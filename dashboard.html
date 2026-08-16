@@ -570,8 +570,8 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
 const PASS_HASH = '9cc5cdb9dd2d48f3d6fa03e2a0cef32f'; // MD5 of "farihas2024"
 const CLOUDINARY_CLOUD  = 'z0vndntn';
 const CLOUDINARY_PRESET = 'farihas_upload';
-function getWorkerUrl() { return 'https://fc-cms.sheezarazzak.workers.dev'; }
-function getToken()     { return 'shayanfaisal111'; }
+function getWorkerUrl() { return localStorage.getItem('fc_worker_url') || 'https://fc-cms.sheezarazzak.workers.dev'; }
+function getToken()     { return localStorage.getItem('fc_admin_token') || 'farihas123'; }
 
 // ─── DARK MODE ──────────────────────────────────────────────────
 function toggleDarkMode() {
