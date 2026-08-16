@@ -411,8 +411,8 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
       <div class="settings-card">
         <h3>&#128226; Announcement Banner</h3>
         <div class="form-group">
-          <label class="form-label">Banner Text</label>
-          <input class="form-input" type="text" id="setAnnouncementText" placeholder="e.g. Free delivery on orders above Rs 3,000">
+          <label class="form-label">Banner Messages (One per line)</label>
+          <textarea class="form-input" id="setMarqueeMessages" rows="4" placeholder="📹 Notice: Please record an unboxing video...&#10;🏷️ Use code [WELCOME10]..."></textarea>
         </div>
         <label class="form-check" style="margin-bottom:16px">
           <input type="checkbox" id="setAnnouncementActive">
@@ -1323,8 +1323,12 @@ function loadSettingsTab(){
   document.getElementById('settingsToken').value=localStorage.getItem('fc_admin_token')||getToken();
   const url=getWorkerUrl(); if(!url) return;
   fetch(url+'/api/settings').then(r=>r.json()).then(s=>{
-    document.getElementById('setAnnouncementText').value=s.announcementText||'';
-    document.getElementById('setAnnouncementActive').checked=s.isAnnouncementActive!==false;
+    document.getElementById('setMarqueeMessages').value = (s.marqueeMessages && s.marqueeMessages.length ? s.marqueeMessages : [
+      "📹 <strong>Notice:</strong> Please record a complete unboxing video before opening your parcel.",
+      "🏷️ Use code [WELCOME10] at checkout for a special discount!",
+      "Premium <strong>Preloved Condition</strong> Shoes — Shipped Across Pakistan"
+    ]).join('\n');
+    document.getElementById('setAnnouncementActive').checked = s.marqueeActive !== false;
     document.getElementById('setClearanceActive').checked=s.clearanceSaleActive!==false;
   }).catch(()=>{});
 }
@@ -1336,9 +1340,9 @@ function saveConnSettings(){
 }
 async function saveSiteSettings(){
   const body={
-    announcementText:document.getElementById('setAnnouncementText').value.trim(),
-    isAnnouncementActive:document.getElementById('setAnnouncementActive').checked,
-    clearanceSaleActive:document.getElementById('setClearanceActive').checked
+    marqueeMessages: document.getElementById('setMarqueeMessages').value.split('\n').map(x=>x.trim()).filter(Boolean),
+    marqueeActive: document.getElementById('setAnnouncementActive').checked,
+    clearanceSaleActive: document.getElementById('setClearanceActive').checked
   };
   try{ await api('PUT','/api/settings',body); toast('Settings saved!'); }
   catch(e){ toast('Error: '+e.message,'err'); }
