@@ -233,6 +233,9 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
       <div class="nav-item active" data-tab="products" onclick="switchTab('products')">
         <span>&#128163;</span> Products
       </div>
+      <div class="nav-item" data-tab="orders" onclick="switchTab('orders')">
+        <span>&#128230;</span> Orders <span id="navOrderBadge" style="margin-left:auto;background:var(--red);color:#fff;padding:2px 6px;border-radius:10px;font-size:0.65rem;font-weight:700;display:none;">0</span>
+      </div>
       <div class="nav-item" data-tab="drafts" onclick="switchTab('drafts')">
         <span>&#128196;</span> Drafts
       </div>
@@ -324,6 +327,44 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
           </table>
         </div>
         <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+    <!-- ORDERS TAB -->
+    <div id="tab-orders" style="display:none">
+      <div class="topbar">
+        <h1>Orders</h1>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="btn btn-outline" onclick="loadOrders()">&#8635; Refresh</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-val" id="statOrdersTotal">&#8212;</div><div class="stat-sub">lifetime</div></div>
+        <div class="stat-card" style="border-left:3px solid #f59e0b"><div class="stat-label">Pending</div><div class="stat-val" id="statOrdersPending">&#8212;</div><div class="stat-sub">awaiting action</div></div>
+        <div class="stat-card" style="border-left:3px solid var(--green)"><div class="stat-label">Confirmed</div><div class="stat-val" id="statOrdersConfirmed">&#8212;</div><div class="stat-sub">processed</div></div>
+        <div class="stat-card" style="border-left:3px solid var(--red)"><div class="stat-label">Cancelled</div><div class="stat-val" id="statOrdersCancelled">&#8212;</div><div class="stat-sub">expired/rejected</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-inner">
+          <table>
+            <thead>
+              <tr>
+                <th>Order ID &amp; Time</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status / Timer</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody">
+              <tr><td colspan="6"><div class="state-box"><div class="icon">&#8987;</div><p>Loading orders...</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="ordersPagination"></div>
       </div>
     </div>
 
@@ -529,7 +570,7 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
 const PASS_HASH = '9cc5cdb9dd2d48f3d6fa03e2a0cef32f'; // MD5 of "farihas2024"
 const CLOUDINARY_CLOUD  = 'z0vndntn';
 const CLOUDINARY_PRESET = 'farihas_upload';
-function getWorkerUrl() { return 'https://fc-cms.faisalshayan444.workers.dev'; }
+function getWorkerUrl() { return 'https://fc-cms.sheezarazzak.workers.dev'; }
 function getToken()     { return 'shayanfaisal111'; }
 
 // ─── DARK MODE ──────────────────────────────────────────────────
@@ -549,7 +590,7 @@ function doLogin(){
     localStorage.setItem('fc_admin_logged','1');
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').style.display='block';
-    loadProducts(); loadSettingsTab();
+    loadProducts(); loadSettingsTab(); loadOrders();
   } else {
     document.getElementById('loginErr').style.display='block';
   }
@@ -560,7 +601,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if(localStorage.getItem('fc_admin_logged')==='1'){
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').style.display='block';
-    loadProducts(); loadSettingsTab(); loadDrafts();
+    loadProducts(); loadSettingsTab(); loadDrafts(); loadOrders();
   }
 });
 
@@ -845,49 +886,52 @@ async function saveProduct(){
   finally{ btn.textContent='&#128190; Publish'; btn.disabled=false; }
 }
 
-// ─── DRAFT MODE ──────────────────────────────────────────────
-function getDrafts(){ try{ return JSON.parse(localStorage.getItem('fc_drafts')||'[]'); }catch{ return []; } }
-function saveDraftsToStorage(drafts){ localStorage.setItem('fc_drafts', JSON.stringify(drafts)); }
+// ─── DRAFT MODE (Cloud-synced via Worker) ────────────────────
+let _draftsCache = []; // in-memory cache after load
 
-function saveDraft(){
+async function saveDraft(){
   const body = getFormBody();
   if(!body.name){ toast('Please enter at least a product name','err'); return; }
-  const drafts = getDrafts();
   const draftId = editingDraftId || ('draft_'+Date.now());
-  const existing = drafts.findIndex(d=>d._draftId===draftId);
   const draft = {...body, _draftId:draftId, _savedAt:new Date().toISOString()};
-  if(existing>=0) drafts[existing]=draft;
-  else drafts.unshift(draft);
-  saveDraftsToStorage(drafts);
-  toast('Draft saved locally! &#128196;');
-  closeModal();
-  updateStats();
+  try{
+    await api('POST','/api/drafts', draft);
+    toast('Draft saved! ☁️ Synced across all devices.');
+    closeModal();
+    loadDrafts();
+  }catch(e){ toast('Error saving draft: '+e.message,'err'); }
 }
 
-function loadDrafts(){
-  const drafts = getDrafts();
+async function loadDrafts(){
   const tbody = document.getElementById('draftsBody');
-  if(!drafts.length){
-    tbody.innerHTML='<tr><td colspan="4"><div class="state-box"><div class="icon">&#128196;</div><p>No drafts saved yet. Use "Save as Draft" to save a product for later.</p></div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = drafts.map(d=>`
-    <tr>
+  tbody.innerHTML='<tr><td colspan="4"><div class="state-box"><div class="icon">⏳</div><p>Loading drafts...</p></div></td></tr>';
+  try{
+    const res = await api('GET','/api/drafts');
+    const drafts = res.drafts || [];
+    _draftsCache = drafts;
+    document.getElementById('statDrafts').textContent = drafts.length;
+    if(!drafts.length){
+      tbody.innerHTML='<tr><td colspan="4"><div class="state-box"><div class="icon">📄</div><p>No drafts saved yet. Use "Save as Draft" to save a product for later.</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = drafts.map(d=>`
+    <tr onclick="editDraft('${d._draftId}')" style="cursor:pointer">
       <td><div class="prod-name">${escHtml(d.name||'')}</div><div class="prod-brand" style="color:#f59e0b;font-size:.7rem;">DRAFT &mdash; ${new Date(d._savedAt).toLocaleDateString()}</div></td>
       <td style="font-weight:700">Rs ${Number(d.price||0).toLocaleString()}</td>
       <td>${escHtml([d.category,d.subCategory].filter(Boolean).join(' > '))}</td>
       <td><div class="action-btns">
-        <button class="btn btn-sm btn-draft" onclick="editDraft('${d._draftId}')">&#9999; Edit</button>
-        <button class="btn btn-sm btn-primary" onclick="publishDraft('${d._draftId}')">&#128640; Publish</button>
-        <button class="btn btn-sm btn-danger" onclick="removeDraft('${d._draftId}')">&#128465;</button>
+        <button class="btn btn-sm btn-draft" onclick="event.stopPropagation();editDraft('${d._draftId}')">✏ Edit</button>
+        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();publishDraft('${d._draftId}')">🚀 Publish</button>
+        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();removeDraft('${d._draftId}')">🗑</button>
       </div></td>
     </tr>`).join('');
-  updateStats();
+  }catch(e){
+    tbody.innerHTML=`<tr><td colspan="4"><div class="state-box"><div class="icon">❌</div><p>${escHtml(e.message)}</p></div></td></tr>`;
+  }
 }
 
 function editDraft(draftId){
-  const drafts = getDrafts();
-  const d = drafts.find(x=>x._draftId===draftId); if(!d) return;
+  const d = _draftsCache.find(x=>x._draftId===draftId); if(!d) return;
   editingId=null; editingDraftId=draftId;
   modalImages = Array.isArray(d.images) ? [...d.images] : [];
   document.getElementById('modalTitle').textContent = 'Edit Draft: '+d.name;
@@ -910,23 +954,24 @@ function editDraft(draftId){
 }
 
 async function publishDraft(draftId){
-  const drafts = getDrafts();
-  const d = drafts.find(x=>x._draftId===draftId); if(!d) return;
+  const d = _draftsCache.find(x=>x._draftId===draftId); if(!d) return;
   try{
     const body = {...d};
     delete body._draftId; delete body._savedAt;
     await api('POST','/api/products',body);
-    removeDraft(draftId);
-    toast('Draft published to shop!');
+    await api('DELETE','/api/drafts/'+draftId);
+    toast('Draft published to shop! 🎉');
     loadProducts(); loadDrafts();
   }catch(e){ toast('Error: '+e.message,'err'); }
 }
 
-function removeDraft(draftId){
-  const drafts = getDrafts().filter(d=>d._draftId!==draftId);
-  saveDraftsToStorage(drafts);
-  loadDrafts();
+async function removeDraft(draftId){
+  try{
+    await api('DELETE','/api/drafts/'+draftId);
+    loadDrafts();
+  }catch(e){ toast('Error: '+e.message,'err'); }
 }
+
 
 // ─── SOLD OUT TOGGLE ──────────────────────────────────────
 async function toggleSoldOut(id,cur){
@@ -1073,6 +1118,191 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files);
   });
 });
+
+// ─── ORDERS MANAGEMENT ─────────────────────────────────────
+let allOrders = [], ordersPage = 1;
+let orderTimerInterval = null;
+
+async function loadOrders(){
+  const tbody = document.getElementById('ordersBody');
+  tbody.innerHTML='<tr><td colspan="6"><div class="state-box"><div class="icon">&#8987;</div><p>Loading orders...</p></div></td></tr>';
+  try{
+    const data = await api('GET','/api/orders');
+    allOrders = (data.orders||[]).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+    updateOrderStats(); renderOrders();
+    startOrderTimers();
+  }catch(e){
+    tbody.innerHTML=`<tr><td colspan="6"><div class="state-box"><div class="icon">&#10060;</div><p>${escHtml(e.message)}</p></div></td></tr>`;
+    toast('Failed to load orders: '+e.message,'err');
+  }
+}
+
+function updateOrderStats(){
+  let pend=0, conf=0, canc=0;
+  allOrders.forEach(o => {
+    if(o.status==='pending') pend++;
+    else if(o.status==='confirmed') conf++;
+    else if(o.status==='cancelled') canc++;
+  });
+  document.getElementById('statOrdersTotal').textContent = allOrders.length;
+  document.getElementById('statOrdersPending').textContent = pend;
+  document.getElementById('statOrdersConfirmed').textContent = conf;
+  document.getElementById('statOrdersCancelled').textContent = canc;
+  
+  const badge = document.getElementById('navOrderBadge');
+  if(pend > 0) { badge.textContent = pend; badge.style.display = 'inline-block'; }
+  else { badge.style.display = 'none'; }
+}
+
+function renderOrders(){
+  const tbody = document.getElementById('ordersBody');
+  if(!allOrders.length){
+    tbody.innerHTML='<tr><td colspan="6"><div class="state-box"><div class="icon">&#128230;</div><p>No orders yet.</p></div></td></tr>';
+    return;
+  }
+  
+  const start = (ordersPage-1)*PAGE_SIZE;
+  const page  = allOrders.slice(start, start+PAGE_SIZE);
+  
+  tbody.innerHTML = page.map(o => {
+    // Items html
+    const itemsHtml = (o.items||[]).map(i => {
+      // Find matching product to check if it's already sold out
+      const p = allProducts.find(x => x.id === i.productId);
+      const isSoldOut = p && p.soldOut;
+      return `<div style="font-size:0.75rem;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;background:var(--gray50);padding:4px 8px;border-radius:4px;">
+        <span style="flex:1;">${escHtml(i.name)} (x${i.qty})</span>
+        ${i.productId ? (isSoldOut ? `<span class="badge badge-red" style="font-size:0.55rem;padding:2px 4px;">Sold Out</span>` : `<button class="btn btn-outline btn-sm" style="font-size:0.6rem;padding:2px 6px;margin-left:6px;" onclick="quickSoldOut('${i.productId}')">Mark Sold Out</button>`) : ''}
+      </div>`;
+    }).join('');
+
+    // Status badge & timer
+    let statusHtml = '';
+    let rowOpacity = 1;
+    if(o.status === 'confirmed') {
+      statusHtml = '<span class="badge badge-green">Confirmed</span>';
+    } else if(o.status === 'cancelled') {
+      statusHtml = '<span class="badge badge-red">Cancelled</span>';
+      rowOpacity = 0.6;
+    } else {
+      statusHtml = `<span class="badge badge-draft" style="margin-bottom:4px;">Pending</span><br>
+                    <div class="order-countdown" data-expires="${o.expiresAt}" data-id="${o.id}" style="font-size:0.75rem;font-weight:700;font-family:monospace;">--:--:--</div>`;
+    }
+
+    return `<tr style="opacity:${rowOpacity}">
+      <td style="white-space:nowrap;font-size:0.75rem;">
+        <strong>${o.id}</strong><br>
+        <span style="color:var(--gray400);">${new Date(o.createdAt).toLocaleString()}</span><br>
+        <span style="font-size:0.65rem;text-transform:uppercase;margin-top:2px;display:inline-block;padding:2px 4px;background:#eee;border-radius:4px;">${o.paymentMethod}</span>
+      </td>
+      <td style="font-size:0.8rem;">
+        <strong>${escHtml(o.customerName)}</strong><br>
+        📞 ${escHtml(o.customerPhone)}<br>
+        📍 ${escHtml(o.city)}
+      </td>
+      <td style="max-width:280px;">${itemsHtml}</td>
+      <td style="font-weight:700;white-space:nowrap;">Rs ${Number(o.totalAmount).toLocaleString()}</td>
+      <td>${statusHtml}</td>
+      <td>
+        <div class="action-btns" style="flex-direction:column;align-items:stretch;gap:4px;">
+          ${o.status==='pending' ? `<button class="btn btn-sm btn-success" onclick="updateOrderStatus('${o.id}','confirmed')">Confirm</button>` : ''}
+          ${o.status==='pending' ? `<button class="btn btn-sm btn-outline" style="color:var(--red);border-color:#fecaca" onclick="updateOrderStatus('${o.id}','cancelled')">Cancel</button>` : ''}
+          <button class="btn btn-sm btn-outline" onclick="deleteOrder('${o.id}')" style="margin-top:4px;">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  
+  // Render pagination
+  const total = Math.ceil(allOrders.length/PAGE_SIZE);
+  const pg    = document.getElementById('ordersPagination');
+  if(total<=1){ pg.innerHTML=''; return; }
+  let h = `<span class="page-info">${allOrders.length} orders</span>`;
+  h += `<button class="page-btn" onclick="goOrdersPage(${ordersPage-1})" ${ordersPage===1?'disabled':''}>&#8592; Prev</button>`;
+  for(let i=1;i<=total;i++) h += `<button class="page-btn ${i===ordersPage?'active':''}" onclick="goOrdersPage(${i})">${i}</button>`;
+  h += `<button class="page-btn" onclick="goOrdersPage(${ordersPage+1})" ${ordersPage===total?'disabled':''}>Next &#8594;</button>`;
+  pg.innerHTML=h;
+}
+
+function goOrdersPage(p){ ordersPage=p; renderOrders(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+async function updateOrderStatus(id, status){
+  try {
+    await api('PUT','/api/orders/'+id,{status});
+    const o = allOrders.find(x=>x.id===id); if(o) o.status=status;
+    updateOrderStats(); renderOrders();
+    toast('Order marked as '+status);
+  } catch(e){ toast('Error: '+e.message,'err'); }
+}
+
+async function deleteOrder(id){
+  if(!confirm('Permanently delete this order?')) return;
+  try {
+    await api('DELETE','/api/orders/'+id);
+    allOrders = allOrders.filter(x=>x.id!==id);
+    updateOrderStats(); renderOrders();
+    toast('Order deleted');
+  } catch(e){ toast('Error: '+e.message,'err'); }
+}
+
+async function quickSoldOut(productId){
+  if(!confirm('Mark this product as Sold Out on the store?')) return;
+  try {
+    await api('PUT','/api/products/'+productId,{soldOut:true});
+    const p = allProducts.find(x=>x.id===productId); if(p) p.soldOut=true;
+    updateStats(); renderTable(); // update products tab
+    renderOrders(); // re-render orders to hide the button and show badge
+    toast('Product marked as Sold Out!');
+  } catch(e){ toast('Error: '+e.message,'err'); }
+}
+
+function startOrderTimers(){
+  if(orderTimerInterval) clearInterval(orderTimerInterval);
+  orderTimerInterval = setInterval(() => {
+    const els = document.querySelectorAll('.order-countdown');
+    let needsRender = false;
+    
+    els.forEach(el => {
+      const expiresAt = new Date(el.dataset.expires).getTime();
+      const now = new Date().getTime();
+      const diff = expiresAt - now;
+      
+      if(diff <= 0){
+        // Auto cancel if expired
+        const id = el.dataset.id;
+        const o = allOrders.find(x=>x.id===id);
+        if(o && o.status === 'pending'){
+          o.status = 'cancelled';
+          // Fire API call in background silently
+          api('PUT','/api/orders/'+id,{status:'cancelled'}).catch(()=>{});
+          needsRender = true;
+        }
+      } else {
+        const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        el.textContent = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        
+        // Turn red if less than 2 hours
+        if(hrs < 2){
+          el.style.color = 'var(--red)';
+        }
+      }
+    });
+    
+    if(needsRender){
+      updateOrderStats(); renderOrders();
+    }
+  }, 1000);
+}
+
+// Auto-refresh orders every 60 seconds if we're on the orders tab
+setInterval(() => {
+  if(document.getElementById('tab-orders').style.display !== 'none'){
+    loadOrders();
+  }
+}, 60000);
 
 // ─── SETTINGS ──────────────────────────────────────────────
 function loadSettingsTab(){

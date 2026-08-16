@@ -16,6 +16,9 @@
  *   GET    /api/orders             → list orders     [AUTH]
  *   PUT    /api/orders/:id         → update order    [AUTH]
  *   DELETE /api/orders/:id         → delete order    [AUTH]
+ *   GET    /api/drafts             → list drafts     [AUTH]
+ *   POST   /api/drafts             → save draft      [AUTH]
+ *   DELETE /api/drafts/:id         → delete draft    [AUTH]
  * ============================================================
  */
 
@@ -50,9 +53,11 @@ function isAuthorized(request, env) {
 const INDEX_KEY        = 'products:index';
 const SETTINGS_KEY     = 'site:settings';
 const ORDERS_INDEX_KEY = 'orders:index';
+const DRAFTS_INDEX_KEY = 'drafts:index';
 
 function productKey(id) { return `product:${id}`; }
 function orderKey(id)   { return `order:${id}`; }
+function draftKey(id)   { return `draft:${id}`; }
 
 // ─── ID generator ────────────────────────────────────────────
 function generateId() {
@@ -176,6 +181,21 @@ export default {
                 if (!isAuthorized(request, env)) return err('Unauthorized', 401);
                 return handleDeleteOrder(id, env);
             }
+        }
+
+        // ── Route: /api/drafts ──
+        if (path === '/api/drafts') {
+            if (!isAuthorized(request, env)) return err('Unauthorized', 401);
+            if (method === 'GET')  return handleListDrafts(env);
+            if (method === 'POST') return handleSaveDraft(request, env);
+        }
+
+        // ── Route: /api/drafts/:id ──
+        const draftMatch = path.match(/^\/api\/drafts\/([^/]+)$/);
+        if (draftMatch) {
+            if (!isAuthorized(request, env)) return err('Unauthorized', 401);
+            const id = draftMatch[1];
+            if (method === 'DELETE') return handleDeleteDraft(id, env);
         }
 
         return err('Not found', 404);
@@ -523,4 +543,57 @@ async function handleDeleteOrder(id, env) {
     await removeFromOrdersIndex(env.PRODUCTS, id);
 
     return ok({ success: true, id });
+}
+
+// ─── GET /api/drafts ─────────────────────────────────────────
+async function handleListDrafts(env) {
+    try {
+        const raw = await env.PRODUCTS.get(DRAFTS_INDEX_KEY);
+        const index = raw ? JSON.parse(raw) : [];
+        if (index.length === 0) return ok({ drafts: [] });
+
+        const fetched = await Promise.all(index.map(id => env.PRODUCTS.get(draftKey(id))));
+        const drafts = fetched.filter(Boolean).map(r => JSON.parse(r));
+        return ok({ drafts });
+    } catch (e) {
+        return err(e.message);
+    }
+}
+
+// ─── POST /api/drafts ────────────────────────────────────────
+async function handleSaveDraft(request, env) {
+    try {
+        const body = await request.json();
+        const id   = body._draftId || generateId();
+        const draft = { ...body, _draftId: id, _savedAt: body._savedAt || new Date().toISOString() };
+
+        await env.PRODUCTS.put(draftKey(id), JSON.stringify(draft));
+
+        // Add to index
+        const raw   = await env.PRODUCTS.get(DRAFTS_INDEX_KEY);
+        const index = raw ? JSON.parse(raw) : [];
+        if (!index.includes(id)) {
+            index.unshift(id);
+            await env.PRODUCTS.put(DRAFTS_INDEX_KEY, JSON.stringify(index));
+        }
+
+        return ok({ success: true, id, draft });
+    } catch (e) {
+        return err(e.message);
+    }
+}
+
+// ─── DELETE /api/drafts/:id ──────────────────────────────────
+async function handleDeleteDraft(id, env) {
+    try {
+        await env.PRODUCTS.delete(draftKey(id));
+
+        const raw   = await env.PRODUCTS.get(DRAFTS_INDEX_KEY);
+        const index = raw ? JSON.parse(raw) : [];
+        await env.PRODUCTS.put(DRAFTS_INDEX_KEY, JSON.stringify(index.filter(i => i !== id)));
+
+        return ok({ success: true, id });
+    } catch (e) {
+        return err(e.message);
+    }
 }
