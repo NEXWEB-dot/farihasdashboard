@@ -567,11 +567,11 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────
-const PASS_HASH = '9cc5cdb9dd2d48f3d6fa03e2a0cef32f'; // MD5 of "farihas2024"
+const PASS_HASH = '9cc5cdb9dd2d48f3d6fa03e2a0cef32f'; // MD5 of "farihas2024" (legacy)
 const CLOUDINARY_CLOUD  = 'z0vndntn';
 const CLOUDINARY_PRESET = 'farihas_upload';
-function getWorkerUrl() { return 'https://fc-cms.sheezarazzak.workers.dev'; }
-function getToken()     { return 'shayanfaisal111'; }
+function getWorkerUrl() { return localStorage.getItem('fc_worker_url') || 'https://fc-cms.sheezarazzak.workers.dev'; }
+function getToken()     { return localStorage.getItem('fc_admin_token') || 'farihas123'; }
 
 // ─── DARK MODE ──────────────────────────────────────────────────
 function toggleDarkMode() {
@@ -586,11 +586,12 @@ function md5(str){function n(a,b){var c=(65535&a)+(65535&b),d=(a>>16)+(b>>16)+(c
 // ─── AUTH ──────────────────────────────────────────────────
 function doLogin(){
   const p = document.getElementById('loginPass').value;
-  if(p === 'farihas2024'){
+  if(p === 'farihas123'){
+    localStorage.setItem('fc_admin_token', 'farihas123'); // Save for API calls
     localStorage.setItem('fc_admin_logged','1');
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').style.display='block';
-    loadProducts(); loadSettingsTab(); loadOrders();
+    loadProducts(); loadSettingsTab(); loadOrders(); loadDrafts();
   } else {
     document.getElementById('loginErr').style.display='block';
   }
