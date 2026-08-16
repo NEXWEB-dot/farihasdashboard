@@ -903,6 +903,19 @@ async function saveDraft(){
 }
 
 async function loadDrafts(){
+  // --- Auto-migrate old local drafts to Cloud ---
+  try {
+    const oldDrafts = JSON.parse(localStorage.getItem('fc_drafts'));
+    if (oldDrafts && oldDrafts.length > 0) {
+      for (const d of oldDrafts) {
+        if (!d._draftId) d._draftId = 'draft_' + Date.now() + Math.floor(Math.random()*1000);
+        await api('POST', '/api/drafts', d);
+      }
+      localStorage.removeItem('fc_drafts'); // Clear old local drafts after sync
+    }
+  } catch(e) {}
+  // ----------------------------------------------
+
   const tbody = document.getElementById('draftsBody');
   tbody.innerHTML='<tr><td colspan="4"><div class="state-box"><div class="icon">⏳</div><p>Loading drafts...</p></div></td></tr>';
   try{
