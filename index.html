@@ -655,11 +655,10 @@ async function loadProducts(){
 function updateStats(){
   const inS = allProducts.filter(p=>!p.soldOut).length;
   const sO  = allProducts.filter(p=>p.soldOut).length;
-  const drafts = getDrafts();
   document.getElementById('statTotal').textContent  = allProducts.length;
   document.getElementById('statInStock').textContent = inS;
   document.getElementById('statSoldOut').textContent = sO;
-  document.getElementById('statDrafts').textContent  = drafts.length;
+  document.getElementById('statDrafts').textContent  = _draftsCache.length;
 }
 
 function applyFilters(){
