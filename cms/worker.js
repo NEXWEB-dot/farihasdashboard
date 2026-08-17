@@ -3,6 +3,7 @@
  * Fariha's Collection — Cloudflare Worker API
  * ============================================================
  * KV Namespace binding name: PRODUCTS
+ * R2 Bucket binding name: IMAGES  (bucket: fc-images)
  *
  * Routes:
  *   GET    /api/products           → list all products
@@ -12,6 +13,9 @@
  *   DELETE /api/products/:id       → delete product  [AUTH]
  *   GET    /api/settings           → site settings
  *   PUT    /api/settings           → update settings [AUTH]
+ *   POST   /api/upload             → upload image to R2 [AUTH]
+ *   GET    /images/:filename       → serve image from R2 (CDN-cached)
+ *   POST   /api/migrate            → migrate Cloudinary→R2 [AUTH]
  *   POST   /api/orders             → place order     [PUBLIC - from checkout]
  *   GET    /api/orders             → list orders     [AUTH]
  *   PUT    /api/orders/:id         → update order    [AUTH]
@@ -21,6 +25,8 @@
  *   DELETE /api/drafts/:id         → delete draft    [AUTH]
  * ============================================================
  */
+
+const R2_PUBLIC_URL = 'https://pub-985d44863924446099d8bbd6f10d7d6e.r2.dev';
 
 // ─── CORS Headers ────────────────────────────────────────────
 const CORS = {
@@ -158,6 +164,18 @@ export default {
         if (path === '/api/upload' && method === 'POST') {
             if (!isAuthorized(request, env)) return err('Unauthorized', 401);
             return handleUploadImage(request, env);
+        }
+
+        // ── Route: GET /images/:filename  (serve R2 images with CDN caching) ──
+        const imageServeMatch = path.match(/^\/images\/(.+)$/);
+        if (imageServeMatch && method === 'GET') {
+            return handleServeImage(imageServeMatch[1], env);
+        }
+
+        // ── Route: POST /api/migrate  (Cloudinary → R2, non-destructive) ──
+        if (path === '/api/migrate' && method === 'POST') {
+            if (!isAuthorized(request, env)) return err('Unauthorized', 401);
+            return handleMigrateImages(request, env);
         }
 
         // ── Route: /api/orders ──
@@ -423,26 +441,143 @@ async function handleUploadImage(request, env) {
             return err('No file provided');
         }
 
-        const ext = file.name.split('.').pop().toLowerCase();
-        // Just a basic extension check, you could do more validation here
-        if (!['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) {
+        const origExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        if (!['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(origExt)) {
             return err('Invalid file type');
         }
+
+        // Dashboard sends pre-compressed JPEG blobs — store as .jpg always
+        const ext = (file.type === 'image/webp') ? 'webp' : 'jpg';
 
         // Generate a unique filename
         const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
         
+        // Read the file as ArrayBuffer for reliable R2 upload
+        const arrayBuffer = await file.arrayBuffer();
+
         // Put the file into R2
-        await env.IMAGES.put(filename, file.stream(), {
-            httpMetadata: { contentType: file.type }
+        await env.IMAGES.put(filename, arrayBuffer, {
+            httpMetadata: { 
+                contentType: file.type || `image/${ext}`,
+                cacheControl: 'public, max-age=31536000, immutable'
+            }
         });
 
-        // The public URL based on what the user provided
-        const publicUrl = `https://pub-985d44863924446099d8bbd6f10d7d6e.r2.dev/${filename}`;
-
+        const publicUrl = `${R2_PUBLIC_URL}/${filename}`;
         return ok({ url: publicUrl });
     } catch (e) {
         return err('Upload failed: ' + e.message, 500);
+    }
+}
+
+// ─── GET /images/:filename ────────────────────────────────────
+// Serve image from R2 with aggressive CDN caching
+async function handleServeImage(filename, env) {
+    try {
+        const object = await env.IMAGES.get(filename);
+        if (!object) {
+            return new Response('Image not found', { status: 404, headers: CORS });
+        }
+        const headers = new Headers(CORS);
+        headers.set('Content-Type', object.httpMetadata?.contentType || 'image/jpeg');
+        headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+        headers.set('ETag', object.httpEtag || '');
+        return new Response(object.body, { status: 200, headers });
+    } catch (e) {
+        return new Response('Error serving image: ' + e.message, { status: 500, headers: CORS });
+    }
+}
+
+// ─── POST /api/migrate ───────────────────────────────────────
+// Safe, non-destructive Cloudinary → R2 migration
+// Only updates the `images` array in each product. Nothing else is touched.
+async function handleMigrateImages(request, env) {
+    try {
+        let body = {};
+        try { body = await request.json(); } catch {}
+
+        // Support migrating a single product or all
+        const targetId = body.productId || null; // if null → migrate all
+        const dryRun   = body.dryRun === true;   // if true → only report, no writes
+
+        const index = await getIndex(env.PRODUCTS);
+        const idsToProcess = targetId ? [targetId] : index;
+
+        const report = { total: idsToProcess.length, migrated: 0, skipped: 0, failed: 0, details: [] };
+
+        for (const id of idsToProcess) {
+            const raw = await env.PRODUCTS.get(productKey(id));
+            if (!raw) {
+                report.details.push({ id, status: 'not_found' });
+                report.skipped++;
+                continue;
+            }
+
+            const product = JSON.parse(raw);
+            const images  = Array.isArray(product.images) ? product.images : [];
+
+            // Find Cloudinary images that need migration
+            const cloudinaryImages = images.filter(url =>
+                typeof url === 'string' && url.includes('res.cloudinary.com')
+            );
+
+            if (cloudinaryImages.length === 0) {
+                report.details.push({ id, name: product.name, status: 'already_r2', images: images.length });
+                report.skipped++;
+                continue;
+            }
+
+            // For dry run, just report what would be done
+            if (dryRun) {
+                report.details.push({ id, name: product.name, status: 'would_migrate', count: cloudinaryImages.length });
+                report.migrated++;
+                continue;
+            }
+
+            // Download each Cloudinary image and re-upload to R2
+            const newImages = [];
+            for (const imgUrl of images) {
+                if (!imgUrl.includes('res.cloudinary.com')) {
+                    // Already R2 or external URL — keep as-is
+                    newImages.push(imgUrl);
+                    continue;
+                }
+
+                try {
+                    const imgRes  = await fetch(imgUrl);
+                    if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status}`);
+
+                    const imgBuf  = await imgRes.arrayBuffer();
+                    const ct      = imgRes.headers.get('content-type') || 'image/jpeg';
+                    const ext2    = ct.includes('png') ? 'png' : ct.includes('webp') ? 'webp' : 'jpg';
+                    const fname   = `migrated-${id}-${Date.now()}-${Math.random().toString(36).substring(2,6)}.${ext2}`;
+
+                    await env.IMAGES.put(fname, imgBuf, {
+                        httpMetadata: {
+                            contentType: ct,
+                            cacheControl: 'public, max-age=31536000, immutable'
+                        }
+                    });
+
+                    newImages.push(`${R2_PUBLIC_URL}/${fname}`);
+                } catch (imgErr) {
+                    // If a single image fails, keep the old Cloudinary URL for that image
+                    console.error(`Failed to migrate image for product ${id}: ${imgErr.message}`);
+                    newImages.push(imgUrl); // fallback: keep original
+                }
+            }
+
+            // Update ONLY the images array — all other fields untouched
+            const updated = { ...product, images: newImages, updatedAt: new Date().toISOString() };
+            await env.PRODUCTS.put(productKey(id), JSON.stringify(updated));
+
+            report.details.push({ id, name: product.name, status: 'migrated', before: images.length, after: newImages.length });
+            report.migrated++;
+        }
+
+        return ok({ ...report, dryRun });
+    } catch (e) {
+        return err('Migration failed: ' + e.message, 500);
     }
 }
 

@@ -424,6 +424,22 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
         </label><br>
         <button class="btn btn-primary" onclick="saveSiteSettings()">&#128190; Save Settings</button>
       </div>
+
+      <!-- ─── Migration Card ─────────────────────────────────── -->
+      <div class="settings-card" id="migrationCard">
+        <h3>&#128257; Image Migration — Cloudinary &rarr; Cloudflare R2</h3>
+        <p style="font-size:.82rem;color:var(--gray600);margin-bottom:16px;line-height:1.6">
+          This will safely copy all existing product images from Cloudinary to your R2 bucket (<strong>fc-images</strong>).<br>
+          &bull; Only the <code>images</code> field is updated &mdash; all other product data is untouched.<br>
+          &bull; If any single image fails, the original Cloudinary URL is kept as fallback.<br>
+          &bull; Run <strong>Dry Run</strong> first to preview what will be migrated.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          <button class="btn btn-outline" id="btnDryRun" onclick="runMigration(true)">&#128270; Dry Run (Preview Only)</button>
+          <button class="btn btn-success" id="btnMigrate" onclick="runMigration(false)">&#128257; Start Full Migration</button>
+        </div>
+        <div id="migrationLog" style="display:none;background:var(--gray50);border:1px solid var(--gray200);border-radius:8px;padding:14px;font-family:monospace;font-size:.76rem;max-height:320px;overflow-y:auto;line-height:1.8;white-space:pre-wrap"></div>
+      </div>
     </div>
 
   </main>
@@ -514,7 +530,7 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
         <div class="upload-area" id="uploadArea">
           <div class="upload-icon">&#128247;</div>
           <p>Click or drag &amp; drop images here</p>
-          <span>JPG, PNG, WEBP &mdash; auto-compressed &amp; uploaded to Cloudinary</span>
+          <span>JPG, PNG, WEBP &mdash; auto-compressed &amp; uploaded securely</span>
           <div class="upload-progress" id="uploadProgress">
             <div class="upload-progress-bar" id="uploadProgressBar"></div>
           </div>
@@ -523,7 +539,7 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
         <div class="image-previews" id="imagePreviews"></div>
         <div class="form-hint" style="margin-top:10px">Or paste a direct image URL:</div>
         <div style="display:flex;gap:8px;margin-top:6px">
-          <input class="form-input" type="url" id="fImgUrl" placeholder="https://res.cloudinary.com/...">
+          <input class="form-input" type="url" id="fImgUrl" placeholder="https://pub-985d44863924446099d8bbd6f10d7d6e.r2.dev/...">
           <button class="btn btn-outline btn-sm" onclick="addImageUrl()" style="white-space:nowrap">Add URL</button>
         </div>
       </div>
@@ -568,8 +584,7 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────
 const PASS_HASH = '9cc5cdb9dd2d48f3d6fa03e2a0cef32f'; // MD5 of "farihas2024" (legacy)
-const CLOUDINARY_CLOUD  = 'z0vndntn';
-const CLOUDINARY_PRESET = 'farihas_upload';
+const R2_PUBLIC_BASE = 'https://pub-985d44863924446099d8bbd6f10d7d6e.r2.dev';
 function getWorkerUrl() { return 'https://fc-cms.sheezarazzak.workers.dev'; }
 function getToken()     { return localStorage.getItem('fc_admin_token') || 'farihas123'; }
 
@@ -1057,16 +1072,18 @@ async function handleImageUpload(filesInput){
     catch(err){ console.warn('Compression failed, using original',err); }
     const fd=new FormData();
     fd.append('file',f);
-    fd.append('upload_preset',CLOUDINARY_PRESET);
-    fd.append('cloud_name',CLOUDINARY_CLOUD);
     try{
-      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
+      const res=await fetch(getWorkerUrl()+'/api/upload',{
+        method:'POST',
+        headers:{ 'Authorization':'Bearer '+getToken() },
+        body:fd
+      });
       const data=await res.json();
-      if(data.secure_url){
-        modalImages.push(data.secure_url); // APPEND, never overwrite
+      if(data.url){
+        modalImages.push(data.url); // APPEND, never overwrite
         renderImagePreviews(); // update preview after EACH upload
       } else {
-        toast('Upload error: '+(data.error?.message||'Unknown'),'err');
+        toast('Upload error: '+(data.error||'Unknown'),'err');
       }
     }catch(e){ toast('Upload failed: '+e.message,'err'); }
   }
@@ -1368,6 +1385,71 @@ document.addEventListener('keydown', e=>{
 });
 document.getElementById('productModal').addEventListener('click', e=>{ if(e.target===document.getElementById('productModal')) closeModal(); });
 document.getElementById('confirmOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('confirmOverlay')) closeConfirm(); });
+// ─── R2 MIGRATION ───────────────────────────────────────────
+async function runMigration(isDryRun) {
+  const log  = document.getElementById('migrationLog');
+  const btn1 = document.getElementById('btnDryRun');
+  const btn2 = document.getElementById('btnMigrate');
+  const url  = getWorkerUrl();
+  const tok  = getToken();
+
+  if (!isDryRun && !confirm('Are you sure you want to migrate ALL Cloudinary images to R2?\n\nThis is safe — no product data will be deleted. But it may take a few minutes for all 152+ products.')) return;
+
+  log.style.display = 'block';
+  log.textContent   = isDryRun
+    ? '🔍 DRY RUN — previewing what would be migrated (no changes will be made)...\n\n'
+    : '🚀 Starting migration: Cloudinary → Cloudflare R2...\n\n';
+  btn1.disabled = btn2.disabled = true;
+
+  try {
+    const res  = await fetch(url + '/api/migrate', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + tok, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dryRun: isDryRun })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      log.textContent += '❌ Error: ' + (data.error || res.status) + '\n';
+      btn1.disabled = btn2.disabled = false;
+      return;
+    }
+
+    // Summary
+    log.textContent += `📦 Total products checked : ${data.total}\n`;
+    log.textContent += `✅ Migrated               : ${data.migrated}\n`;
+    log.textContent += `⏭️  Skipped (already R2)   : ${data.skipped}\n`;
+    log.textContent += `❌ Failed                 : ${data.failed}\n`;
+    log.textContent += `\n─── Per-product details ─────────────────────\n`;
+
+    (data.details || []).forEach(d => {
+      const icon = d.status === 'migrated'     ? '✅'
+                 : d.status === 'would_migrate' ? '🔍'
+                 : d.status === 'already_r2'   ? '⏭️ '
+                 : d.status === 'not_found'     ? '❓'
+                 : '⚠️ ';
+      const detail = d.status === 'migrated'     ? `migrated ${d.before}→${d.after} images`
+                   : d.status === 'would_migrate' ? `would migrate ${d.count} images`
+                   : d.status === 'already_r2'   ? `already on R2 (${d.images} images)`
+                   : d.status;
+      log.textContent += `${icon} [${d.id?.substring(0,8)}] ${(d.name||'(no name)').substring(0,35)} — ${detail}\n`;
+    });
+
+    log.textContent += `\n─────────────────────────────────────────────\n`;
+    log.textContent += isDryRun
+      ? `✅ Dry run complete. No changes were made. Run "Start Full Migration" when ready.`
+      : `🎉 Migration complete! All images are now served from Cloudflare R2.`;
+
+    log.scrollTop = log.scrollHeight;
+    if (!isDryRun && data.failed === 0) toast('Migration complete! All images now on R2.','ok');
+    if (!isDryRun && data.failed > 0)  toast(`Migration done with ${data.failed} failures. Check log.`,'err');
+  } catch (e) {
+    log.textContent += '\n❌ Network error: ' + e.message;
+  }
+
+  btn1.disabled = btn2.disabled = false;
+}
+
 </script>
 </body>
 </html>
